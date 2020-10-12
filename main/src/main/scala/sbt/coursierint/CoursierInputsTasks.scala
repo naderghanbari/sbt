@@ -41,6 +41,7 @@ object CoursierInputsTasks {
   private def coursierProject0(
       projId: ModuleID,
       dependencies: Seq[ModuleID],
+      excludeDeps: Seq[InclExclRule],
       configurations: Seq[sbt.librarymanagement.Configuration],
       sv: String,
       sbv: String,
@@ -55,11 +56,12 @@ object CoursierInputsTasks {
 
     val proj0 = FromSbt.project(
       projId,
-      dependencies,
+      dependencies.map { _.withExclusions(excludeDeps.toVector) },
       configMap,
       sv,
       sbv
     )
+
     val proj1 = auOpt match {
       case Some(au) =>
         proj0.withProperties(proj0.properties :+ (SbtPomExtraProperties.POM_API_KEY -> au.toString))
@@ -80,6 +82,7 @@ object CoursierInputsTasks {
       coursierProject0(
         projectID.value,
         allDependencies.value,
+        allExcludeDependencies.value,
         ivyConfigurations.value,
         scalaVersion.value,
         scalaBinaryVersion.value,
