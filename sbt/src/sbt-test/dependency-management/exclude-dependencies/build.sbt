@@ -14,6 +14,12 @@ lazy val a = (project in file("a")).
     excludeDependencies += "org.slf4j"
   )
 
+lazy val aa = (project in file("aa")).
+  settings(
+    scalaVersion := "2.11.12",
+  )
+  .dependsOn(a)
+
 lazy val b = (project in file("b")).
   settings(
     scalaVersion := "2.11.12",
@@ -25,11 +31,16 @@ lazy val root = (project in file(".")).
   settings(
     check := {
       (update in a).value
+      (update in aa).value
       (update in b).value
       val acp = (externalDependencyClasspath in Compile in a).value.sortBy {_.data.getName}
+      val aacp = (externalDependencyClasspath in Compile in aa).value.sortBy {_.data.getName}
       val bcp = (externalDependencyClasspath in Compile in b).value.sortBy {_.data.getName}
 
       if (acp exists { _.data.getName contains "slf4j-api-1.7.5.jar" }) {
+        sys.error("slf4j-api-1.7.5.jar found when it should NOT be included: " + acp.toString)
+      }
+      if (aacp exists { _.data.getName contains "slf4j-api-1.7.5.jar" }) {
         sys.error("slf4j-api-1.7.5.jar found when it should NOT be included: " + acp.toString)
       }
       if (bcp exists { _.data.getName contains "dispatch-core_2.11-0.11.1.jar" }) {
